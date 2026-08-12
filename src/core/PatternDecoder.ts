@@ -1,5 +1,3 @@
-import { PlayerPattern } from "./Schemas";
-
 export class PatternDecoder {
   private bytes: Uint8Array;
 
@@ -7,8 +5,11 @@ export class PatternDecoder {
   readonly width: number;
   readonly scale: number;
 
+  // Structural rather than importing PlayerPattern from Schemas — that import
+  // closes a Schemas -> CosmeticSchemas -> PatternDecoder cycle, which matters
+  // now that CosmeticSchemas reads MAX_PATTERN_DATA_LENGTH at module scope.
   constructor(
-    pattern: PlayerPattern,
+    pattern: { patternData: string },
     base64urlDecode: (input: string) => Uint8Array,
   ) {
     ({

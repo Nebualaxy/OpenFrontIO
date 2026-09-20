@@ -1,16 +1,22 @@
 import { html, LitElement, TemplateResult } from "lit";
 import { customElement, state } from "lit/decorators.js";
 import {
+  DESKTOP_TUTORIAL_VIDEO_URL,
   getGamesPlayed,
+  homeHref,
   isInIframe,
   translateText,
   TUTORIAL_VIDEO_URL,
 } from "../../../client/Utils";
+import { Pattern } from "../../../core/CosmeticSchemas";
 import { EventBus } from "../../../core/EventBus";
-import { RankedType } from "../../../core/game/Game";
+import { GameType, RankedType } from "../../../core/game/Game";
 import { GameUpdateType } from "../../../core/game/GameUpdates";
+import { syncAchievements } from "../../AchievementSignal";
 import { getUserMe } from "../../Api";
-import "../../components/CosmeticButton";
+import "../../components/CosmeticCard";
+import { cosmeticSelectionLabel } from "../../components/CosmeticPresentation";
+import "../../components/PurchaseButton";
 import "../../components/SteamWishlist";
 import { Controller } from "../../Controller";
 import {
@@ -19,6 +25,9 @@ import {
   resolveCosmetics,
 } from "../../Cosmetics";
 import { crazyGamesSDK } from "../../CrazyGamesSDK";
+import { isDesktopShell } from "../../DesktopShell";
+import { Platform } from "../../Platform";
+import { PlaySoundEffectEvent } from "../../sound/Sounds";
 import { steamSDK } from "../../SteamSDK";
 import { SendWinnerEvent } from "../../Transport";
 import { GameView } from "../../view";
@@ -32,9 +41,6 @@ export class WinModal extends LitElement implements Controller {
 
   @state()
   isVisible = false;
-
-  @state()
-  showButtons = false;
 
   @state()
   private isWin = false;
@@ -71,11 +77,7 @@ export class WinModal extends LitElement implements Controller {
         <div class="min-h-0 flex-1 overflow-y-auto pr-0.5">
           ${this.innerHtml()}
         </div>
-        <div
-          class="${this.showButtons
-            ? "mt-4 flex justify-between gap-2.5 shrink-0"
-            : "hidden"}"
-        >
+        <div class="mt-4 flex justify-between gap-2.5 shrink-0">
           <o-button
             variant="primary"
             width="block"
@@ -137,14 +139,21 @@ export class WinModal extends LitElement implements Controller {
         </h3>
         <!-- 56.25% = 9:16 -->
         <div class="relative w-full pb-[56.25%]">
-          <iframe
-            class="absolute top-0 left-0 w-full h-full rounded-sm"
-            src="${this.isVisible ? TUTORIAL_VIDEO_URL : ""}"
-            title="YouTube video player"
-            frameborder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            allowfullscreen
-          ></iframe>
+          ${Platform.isElectron
+            ? html`<video
+                class="absolute top-0 left-0 w-full h-full rounded-sm"
+                src="${this.isVisible ? DESKTOP_TUTORIAL_VIDEO_URL : ""}"
+                controls
+                preload="metadata"
+              ></video>`
+            : html`<iframe
+                class="absolute top-0 left-0 w-full h-full rounded-sm"
+                src="${this.isVisible ? TUTORIAL_VIDEO_URL : ""}"
+                title="YouTube video player"
+                frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                allowfullscreen
+              ></iframe>`}
         </div>
       </div>
     `;
@@ -156,13 +165,17 @@ export class WinModal extends LitElement implements Controller {
         <h3 class="text-xl font-semibold text-white mb-3">
           ${translateText("win_modal.support_openfront")}
         </h3>
-        <p class="text-white mb-3">
-          ${translateText("win_modal.territory_pattern")}
-        </p>
+        ${isDesktopShell()
+          ? null
+          : html`<p class="text-white mb-3">
+              ${translateText("win_modal.territory_pattern")}
+            </p>`}
         <div
           class="mx-auto w-full overflow-x-auto overflow-y-visible rounded-sm"
         >
-          <div class="flex min-w-max items-start justify-start gap-4 px-1 py-1">
+          <div
+            class="flex min-w-max items-start justify-center gap-4 px-1 py-1"
+          >
             ${this.patternContent}
           </div>
         </div>
@@ -189,14 +202,26 @@ export class WinModal extends LitElement implements Controller {
 
     this.patternContent = html`
       <div class="flex gap-4 flex-nowrap justify-start items-start">
-        ${selected.map(
-          (r) => html`
-            <cosmetic-button
-              .resolved=${r}
-              .onPurchase=${purchaseCosmetic}
-            ></cosmetic-button>
-          `,
-        )}
+        ${selected.map((resolved) => {
+          // Only patterns were selected above.
+          const pattern = resolved.cosmetic as Pattern | null;
+          return html`
+            <div data-win-cosmetic-promo class="flex w-40 flex-col gap-2">
+              <cosmetic-card
+                .resolved=${resolved}
+                .interactive=${false}
+              ></cosmetic-card>
+              <purchase-button
+                .priceHard=${pattern?.priceHard ?? null}
+                .priceSoft=${pattern?.priceSoft ?? null}
+                .rarity=${pattern?.rarity ?? "common"}
+                .itemName=${cosmeticSelectionLabel(resolved)}
+                .onPurchaseHard=${() => purchaseCosmetic(resolved, "hard")}
+                .onPurchaseSoft=${() => purchaseCosmetic(resolved, "soft")}
+              ></purchase-button>
+            </div>
+          `;
+        })}
       </div>
     `;
   }
@@ -205,7 +230,7 @@ export class WinModal extends LitElement implements Controller {
     return html`
       <div class="text-center mb-6 bg-black/30 p-2.5 rounded-sm">
         <h3 class="text-xl font-semibold text-white mb-3">
-          ${translateText("steam_wishlist.title")}
+          ${translateText("steam_wishlist.buy_on_steam")}
         </h3>
         <steam-wishlist
           campaign="win_modal"
@@ -238,27 +263,27 @@ export class WinModal extends LitElement implements Controller {
 
   async show() {
     crazyGamesSDK.gameplayStop();
-    await this.loadPatternContent();
-    // Check if this is a ranked game
     this.isRankedGame =
       this.game.config().gameConfig().rankedType !== undefined;
     this.isVisible = true;
     this.requestUpdate();
-    setTimeout(() => {
-      this.showButtons = true;
-      this.requestUpdate();
-    }, 3000);
+    try {
+      await this.loadPatternContent();
+    } catch (error) {
+      console.warn("Failed to load win modal cosmetics", error);
+      return;
+    }
+    this.requestUpdate();
   }
 
   hide() {
     this.isVisible = false;
-    this.showButtons = false;
     this.requestUpdate();
   }
 
   private _handleExit() {
     this.hide();
-    window.location.href = "/";
+    window.location.href = homeHref();
   }
 
   private _handleRequeue() {
@@ -291,10 +316,28 @@ export class WinModal extends LitElement implements Controller {
     ) {
       this.hasShownDeathModal = true;
       this._title = translateText("win_modal.died");
+      this.eventBus.emit(new PlaySoundEffectEvent("defeat"));
       this.show();
     }
     const updates = this.game.updatesSinceLastTick();
-    const winUpdates = updates !== null ? updates[GameUpdateType.Win] : [];
+    const winUpdates = updates?.[GameUpdateType.Win] ?? [];
+    // Only games the server archives are ingested, and only ingested games
+    // can produce an achievement row. Singleplayer and replays produce none,
+    // ever, so polling for one there spends the whole schedule on a certain
+    // miss. Same pair of checks the rest of the HUD uses to mean "not a
+    // server game" (see MultiTabModal, GameRightSidebar).
+    const config = this.game.config();
+    const isServerGame =
+      config.gameConfig().gameType !== GameType.Singleplayer &&
+      !config.isReplay();
+    // Achievements are awarded server-side during ingest, which the game
+    // server triggers from the winner vote these updates drive. Fire and
+    // forget: the sync retries on its own and the startup reconcile is the
+    // backstop, so nothing here needs to await or report. One game end is one
+    // sync, so this sits outside the loop.
+    if (isServerGame && winUpdates.length > 0) {
+      void syncAchievements({ gameId: this.game.gameID() });
+    }
     winUpdates.forEach((wu) => {
       if (wu.winner === undefined) {
         // Match cancelled (e.g. a ranked 2v2 that didn't fill or fully
@@ -317,13 +360,16 @@ export class WinModal extends LitElement implements Controller {
           });
           this.isWin = false;
         }
+        this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
       } else if (wu.winner[0] === "nation") {
+        this.eventBus.emit(new SendWinnerEvent(wu.winner, wu.allPlayersStats));
         this._title = translateText("win_modal.nation_won", {
           nation: wu.winner[1],
         });
         this.isWin = false;
+        this.playEndOfGameSound();
         this.show();
       } else {
         const winner = this.game.playerByClientID(wu.winner[1]);
@@ -347,9 +393,21 @@ export class WinModal extends LitElement implements Controller {
           });
           this.isWin = false;
         }
+        this.playEndOfGameSound();
         history.replaceState(null, "", `${window.location.pathname}?replay`);
         this.show();
       }
     });
+  }
+
+  private playEndOfGameSound(): void {
+    if (this.isWin) {
+      this.eventBus.emit(new PlaySoundEffectEvent("victory"));
+    } else if (!this.hasShownDeathModal && this.game.myPlayer()?.hasSpawned()) {
+      // Spawned check: spectators and replay viewers shouldn't get a
+      // personal defeat sting. The cue also already played if the player
+      // died earlier (hasShownDeathModal).
+      this.eventBus.emit(new PlaySoundEffectEvent("defeat"));
+    }
   }
 }

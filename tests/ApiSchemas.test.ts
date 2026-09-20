@@ -13,8 +13,10 @@ import {
   PlayerLeaderboardEntrySchema,
   PlayerProfileSchema,
   PostTribeBoostResponseSchema,
+  PublicCreatorSchema,
   PublicPlayerGameSchema,
   PublicPlayerGamesResponseSchema,
+  PutCreatorResponseSchema,
   PutUsernameResponseSchema,
   RankedLeaderboardEntrySchema,
   RewardSchema,
@@ -225,6 +227,82 @@ describe("PlayerProfileSchema clans", () => {
       PlayerProfileSchema.safeParse({ ...base, clans: [{ tag: "ALP" }] })
         .success,
     ).toBe(false);
+  });
+
+  it("keeps clan balances as strings rather than coercing to numbers", () => {
+    const result = PlayerProfileSchema.safeParse({
+      ...base,
+      clans: [{ ...clan, softBalance: "1000", hardBalance: "0" }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.clans?.[0].softBalance).toBe("1000");
+      expect(result.data.clans?.[0].hardBalance).toBe("0");
+    }
+  });
+
+  it("preserves a balance beyond Number.MAX_SAFE_INTEGER exactly", () => {
+    const huge = "9007199254740993";
+    const result = PlayerProfileSchema.safeParse({
+      ...base,
+      clans: [{ ...clan, softBalance: huge, hardBalance: huge }],
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.clans?.[0].softBalance).toBe(huge);
+    }
+  });
+
+  it("accepts a clan entry without balances (older API)", () => {
+    const result = PlayerProfileSchema.safeParse({ ...base, clans: [clan] });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.clans?.[0].softBalance).toBeUndefined();
+      expect(result.data.clans?.[0].hardBalance).toBeUndefined();
+    }
+  });
+
+  it("rejects numeric balances", () => {
+    expect(
+      PlayerProfileSchema.safeParse({
+        ...base,
+        clans: [{ ...clan, softBalance: 1000 }],
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("UserMeResponseSchema clan balances", () => {
+  const clans = UserMeResponseSchema.shape.player.shape.clans;
+  const clan = {
+    tag: "ALP",
+    name: "Alpha Clan",
+    role: "leader",
+    joinedAt: "2024-02-01T12:00:00.000Z",
+    memberCount: 12,
+  };
+
+  it("keeps balances as strings on the caller's own clans", () => {
+    const r = clans.safeParse([
+      { ...clan, softBalance: "150", hardBalance: "25" },
+    ]);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data?.[0].softBalance).toBe("150");
+      expect(r.data?.[0].hardBalance).toBe("25");
+    }
+  });
+
+  it("accepts clans without balances (older API)", () => {
+    const r = clans.safeParse([clan]);
+    expect(r.success).toBe(true);
+    if (r.success) {
+      expect(r.data?.[0].softBalance).toBeUndefined();
+    }
+  });
+
+  it("rejects numeric balances", () => {
+    expect(clans.safeParse([{ ...clan, hardBalance: 25 }]).success).toBe(false);
   });
 });
 
@@ -800,6 +878,149 @@ describe("PutUsernameResponseSchema", () => {
     delete rest.base;
     expect(PutUsernameResponseSchema.safeParse(rest).success).toBe(false);
   });
+
+  // Deliberately lenient, unlike every other field here: this is a 200, so
+  // the rename has already committed server-side. Rejecting an unknown
+  // bareClaim would report failure for a rename that succeeded and burn the
+  // player's 30-day cooldown. Dropping it degrades to "say nothing".
+  it("drops an unknown bareClaim instead of failing the parse", () => {
+    const result = PutUsernameResponseSchema.safeParse({
+      ...base,
+      bareClaim: "nope",
+    });
+    expect(result.success).toBe(true);
+    expect(result.success && result.data.bareClaim).toBeUndefined();
+  });
+});
+
+describe("UserMeResponseSchema creator", () => {
+  const basePlayer = {
+    publicId: "p1",
+    adfree: false,
+    unlimitedRanked: false,
+    canCreatePublicLobbies: false,
+    achievements: { singleplayerMap: [] },
+    friends: [],
+    subscription: null,
+  };
+
+  it("accepts a player with no creator binding", () => {
+    const result = UserMeResponseSchema.safeParse({
+      user: {},
+      player: { ...basePlayer, creator: null },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.player.creator).toBeNull();
+    }
+  });
+
+  it("accepts a player bound to a creator, cooldown running", () => {
+    const result = UserMeResponseSchema.safeParse({
+      user: {},
+      player: {
+        ...basePlayer,
+        creator: {
+          code: "LEWIS",
+          displayName: "Lewis",
+          sinceAt: "2026-08-01T00:00:00.000Z",
+          canChangeAt: "2026-08-08T00:00:00.000Z",
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.player.creator).toEqual({
+        code: "LEWIS",
+        displayName: "Lewis",
+        sinceAt: "2026-08-01T00:00:00.000Z",
+        canChangeAt: "2026-08-08T00:00:00.000Z",
+      });
+    }
+  });
+
+  it("accepts a player bound to a creator, cooldown elapsed (canChangeAt null)", () => {
+    const result = UserMeResponseSchema.safeParse({
+      user: {},
+      player: {
+        ...basePlayer,
+        creator: {
+          code: "LEWIS",
+          displayName: "Lewis",
+          sinceAt: "2026-08-01T00:00:00.000Z",
+          canChangeAt: null,
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.player.creator?.canChangeAt).toBeNull();
+    }
+  });
+
+  // This client ships before an API without the field, and after one that
+  // predates it — both must parse so old and new deployments coexist.
+  it("accepts a response without the field at all (older API)", () => {
+    expect(
+      UserMeResponseSchema.safeParse({ user: {}, player: basePlayer }).success,
+    ).toBe(true);
+  });
+});
+
+describe("PublicCreatorSchema", () => {
+  it("parses a public creator card", () => {
+    const result = PublicCreatorSchema.safeParse({
+      code: "LEWIS",
+      displayName: "Lewis",
+      status: "active",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        code: "LEWIS",
+        displayName: "Lewis",
+        status: "active",
+      });
+    }
+  });
+
+  it("rejects a status outside the known enum", () => {
+    expect(
+      PublicCreatorSchema.safeParse({
+        code: "LEWIS",
+        displayName: "Lewis",
+        status: "banned",
+      }).success,
+    ).toBe(false);
+  });
+});
+
+describe("PutCreatorResponseSchema", () => {
+  it("parses the API's bind confirmation envelope", () => {
+    const result = PutCreatorResponseSchema.safeParse({
+      ok: true,
+      creator: { code: "LEWIS", displayName: "Lewis" },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects the un-enveloped pair the API never sends", () => {
+    expect(
+      PutCreatorResponseSchema.safeParse({
+        code: "LEWIS",
+        displayName: "Lewis",
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects a missing displayName", () => {
+    expect(
+      PutCreatorResponseSchema.safeParse({
+        ok: true,
+        creator: { code: "LEWIS" },
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("isTemporaryUsername", () => {
@@ -1150,5 +1371,22 @@ describe("PostTribeBoostResponseSchema", () => {
         pricePaid: "100",
       }).success,
     ).toBe(false);
+  });
+});
+
+describe("UserMeResponseSchema player achievements", () => {
+  const achievements = UserMeResponseSchema.shape.player.shape.achievements;
+
+  it("keeps the server-awarded player achievements array", () => {
+    const parsed = achievements.parse({
+      singleplayerMap: [],
+      player: [{ achievement: "win_ffa", game: "abc123", achievedAt: null }],
+    });
+    expect(parsed.player[0].achievement).toBe("win_ffa");
+  });
+
+  it("defaults player to an empty array when the server omits it", () => {
+    const parsed = achievements.parse({ singleplayerMap: [] });
+    expect(parsed.player).toEqual([]);
   });
 });

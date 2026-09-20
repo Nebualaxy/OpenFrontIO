@@ -11,6 +11,7 @@ import { ClientEnv } from "../../ClientEnv";
 import { terrainMapFileLoader } from "../../TerrainMapFileLoader";
 import {
   copyToClipboard,
+  currentPagePath,
   getMapName,
   renderDuration,
   showToast,
@@ -40,8 +41,8 @@ const FILTER_TABS: { key: FilterKey; labelKey: string }[] = [
   { key: "all", labelKey: "clan_modal.history_filter_all" },
   { key: "ffa", labelKey: "clan_modal.history_type_ffa" },
   { key: "team", labelKey: "clan_modal.history_type_team" },
-  { key: "hvn", labelKey: "clan_modal.history_filter_hvn" },
-  { key: "ranked", labelKey: "clan_modal.history_filter_ranked" },
+  { key: "hvn", labelKey: "clan_modal.stats_hvn" },
+  { key: "ranked", labelKey: "clan_modal.stats_ranked" },
 ];
 
 // Cache survives a tab switch within the modal: keep the full
@@ -197,7 +198,7 @@ export class ClanGameHistoryView extends LitElement {
   private async watchReplay(gameId: string) {
     try {
       const encoded = encodeURIComponent(gameId);
-      const url = `/${ClientEnv.workerPath(gameId)}/game/${encoded}`;
+      const url = currentPagePath(ClientEnv.gamePath(gameId));
       history.pushState({ join: gameId }, "", url);
       window.dispatchEvent(
         new CustomEvent("join-changed", { detail: { gameId: encoded } }),
@@ -221,14 +222,16 @@ export class ClanGameHistoryView extends LitElement {
   }
 
   private async copyGameLink(gameId: string) {
-    const encodedGameId = encodeURIComponent(gameId);
-    const url = `${window.location.origin}/${ClientEnv.workerPath(gameId)}/game/${encodedGameId}`;
+    // shareOrigin(), not window.location.origin: this is copied to be sent to
+    // someone else, and the desktop shell's own origin (`app://openfront`)
+    // resolves nowhere outside that Electron app. See deriveShareOrigin.
+    const url = `${ClientEnv.shareOrigin()}${ClientEnv.gamePath(gameId)}`;
 
     try {
       await void copyToClipboard(url);
       showToast(translateText("common.copied"), "green");
     } catch {
-      showToast(translateText("error_modal.failed_copy"), "red");
+      showToast(translateText("common.failed_copy"), "red");
     }
   }
 

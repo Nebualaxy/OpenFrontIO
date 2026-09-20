@@ -1,5 +1,6 @@
 import DOMPurify from "dompurify";
 import { customAlphabet } from "nanoid";
+import { exp } from "./DetMath";
 import { Cell, GameType, PlayerType, Unit } from "./game/Game";
 import { GameMap, TileRef } from "./game/GameMap";
 import { TileSet } from "./game/TileSet";
@@ -10,6 +11,7 @@ import {
   GameStartInfo,
   PartialGameRecord,
   PlayerRecord,
+  PlayerReport,
   Tribe,
   Turn,
   Winner,
@@ -301,6 +303,9 @@ export function createPartialGameRecord(
   // ingest reads them from the record for owner appearance stats, and
   // replays rebuild GameStartInfo from the record so the same names spawn.
   tribes?: Tribe[],
+  // Player reports filed during the game (multiplayer only; see
+  // GameServer.handleReport). The API ingests them for moderation.
+  reports?: PlayerReport[],
 ): PartialGameRecord {
   const duration = Math.floor((end - start) / 1000);
   const num_turns = allTurns.length;
@@ -329,6 +334,7 @@ export function createPartialGameRecord(
       num_turns,
       winner,
       tribes,
+      reports,
     },
     version: "v0.0.2",
     turns,
@@ -371,6 +377,21 @@ export function generateID(): GameID {
     8,
   );
   return nanoid();
+}
+
+// Multi-server game id (docs/MultiServer.md): the minting deployment's
+// instance letter + 9 random chars. The 9 random chars carry uniqueness
+// (game ids are permanent archive keys, sized against every game ever
+// minted) and private-lobby unguessability; worker routing hashes the full
+// id, extracting the worker index from entropy that must exist anyway.
+// generateID() stays 8 chars for the ids that never leave one server or one
+// client: client ids, singleplayer games, worker message ids.
+export function generateGameID(instanceLetter: string): GameID {
+  const nanoid = customAlphabet(
+    "123456789abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ",
+    9,
+  );
+  return instanceLetter + nanoid();
 }
 
 export function toInt(num: number): bigint {
@@ -442,7 +463,7 @@ export function sigmoid(
   decayRate: number,
   midpoint: number,
 ): number {
-  return 1 / (1 + Math.exp(-decayRate * (value - midpoint)));
+  return 1 / (1 + exp(-decayRate * (value - midpoint)));
 }
 
 export function formatPlayerDisplayName(
@@ -458,4 +479,47 @@ const CLAN_TAG_INVALID_CHARS = new RegExp(`[^${CLAN_TAG_CHARS}]`, "g");
 
 export function sanitizeClanTag(tag: string): string {
   return tag.replace(CLAN_TAG_INVALID_CHARS, "").substring(0, 5).toUpperCase();
+}
+
+// Longest label a featured lobby may show in the browser. Long enough for
+// "Europe — Official OpenFront Masters Scrims", short enough that one row
+// cannot crowd out the rest of the list. Lives here rather than in Schemas so
+// the sanitiser that enforces it has no import back into Schemas — that edge
+// would close a require cycle.
+export const LOBBY_LABEL_MAX = 48;
+
+// A featured lobby's label is host-supplied text shown in the lobby browser, so
+// it is sanitised before it can reach anyone: control characters and bidi
+// overrides stripped (they let text render as something entirely different),
+// whitespace collapsed, then length-capped. Rendered as TEXT, never markup —
+// emoji work because they are ordinary codepoints.
+export function sanitizeLobbyLabel(raw: string): string {
+  const kept: string[] = [];
+  // Iterated by CODE POINT, not code unit: an emoji is a surrogate pair, and
+  // slicing one in half is how a label turns into a replacement glyph.
+  for (const ch of raw) {
+    const cp = ch.codePointAt(0)!;
+    // Tab/newline/vertical tab/form feed/carriage return are C0 controls, but
+    // they are also word separators: dropping them outright would weld
+    // "Europe\nScrims" into "EuropeScrims". They become spaces, and the
+    // collapse below folds any run of them into one.
+    if (cp === 0x09 || (cp >= 0x0a && cp <= 0x0d)) {
+      kept.push(" ");
+      continue;
+    }
+    if (cp < 0x20 || cp === 0x7f) continue; // other C0 controls and DEL
+    if (cp >= 0x80 && cp <= 0x9f) continue; // C1 controls
+    // Bidi overrides, isolates and marks: they make following text render in
+    // another direction, which is how a label claims to be something it isn't.
+    if (cp >= 0x202a && cp <= 0x202e) continue;
+    if (cp >= 0x2066 && cp <= 0x2069) continue;
+    if (cp === 0x200e || cp === 0x200f) continue;
+    if (cp === 0x061c) continue; // ARABIC LETTER MARK — zero-width, bidi-active
+    // NB: U+200D ZERO WIDTH JOINER is deliberately KEPT — emoji sequences like
+    // 👨‍👩‍👧 are built from it, and stripping it would break them apart.
+    kept.push(ch);
+  }
+  return Array.from(kept.join("").replace(/\s+/g, " ").trim())
+    .slice(0, LOBBY_LABEL_MAX)
+    .join("");
 }

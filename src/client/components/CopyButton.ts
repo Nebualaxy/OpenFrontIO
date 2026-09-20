@@ -63,7 +63,11 @@ export class CopyButton extends LitElement {
   }
 
   private async buildCopyUrl(): Promise<string> {
-    let url = `${window.location.origin}/${ClientEnv.workerPath(this.lobbyId)}/game/${this.lobbyId}`;
+    // ClientEnv.shareOrigin(), not window.location: this string goes to the
+    // clipboard and then to another player, and under the desktop shell the
+    // document's own origin is `app://openfront` — a link only that one
+    // Electron process can open. See deriveShareOrigin.
+    let url = `${ClientEnv.shareOrigin()}${ClientEnv.gamePath(this.lobbyId)}`;
     if (this.includeLobbyQuery) {
       url += `?lobby&s=${encodeURIComponent(this.lobbySuffix)}`;
     }
@@ -82,7 +86,7 @@ export class CopyButton extends LitElement {
   async handleCopy() {
     const text = await this.resolveCopyText();
     if (!text) {
-      alert("Error copying game id");
+      showToast(translateText("common.failed_copy"), "red");
       return;
     }
 
@@ -90,7 +94,7 @@ export class CopyButton extends LitElement {
       await copyToClipboard(text);
       showToast(translateText("common.copied"), "green");
     } catch {
-      showToast(translateText("error_modal.failed_copy"), "red");
+      showToast(translateText("common.failed_copy"), "red");
     }
   }
 

@@ -23,6 +23,7 @@ export class SpawnExecution implements Execution {
   private mg: Game;
   private queuedDuringSpawnPhase = false;
   private static readonly MAX_SPAWN_TRIES = 1_000;
+  private static readonly RELAX_MIN_DIST_AT = 750;
 
   constructor(
     gameID: GameID,
@@ -79,13 +80,15 @@ export class SpawnExecution implements Execution {
       return;
     }
 
-    player.tiles().forEach((t) => player.relinquish(t));
+    const prevTiles = Array.from(player.tiles());
+    prevTiles.forEach((t) => player.relinquish(t));
     const spawn = this.getSpawn(
       this.mg.config().isRandomSpawn() ? undefined : this.tile,
     );
 
     if (!spawn) {
       console.warn(`SpawnExecution: cannot spawn ${this.playerInfo.name}`);
+      prevTiles.forEach((t) => player.conquer(t));
       return;
     }
 
@@ -147,24 +150,26 @@ export class SpawnExecution implements Execution {
         continue;
       }
 
-      const isOtherPlayerSpawnedNearby = this.mg
-        .allPlayers()
-        .filter((player) => player.id() !== this.playerInfo.id)
-        .some((player) => {
-          const spawnTile = player.spawnTile();
+      if (tries <= SpawnExecution.RELAX_MIN_DIST_AT) {
+        const isOtherPlayerSpawnedNearby = this.mg
+          .allPlayers()
+          .filter((player) => player.id() !== this.playerInfo.id)
+          .some((player) => {
+            const spawnTile = player.spawnTile();
 
-          if (spawnTile === undefined) {
-            return false;
-          }
+            if (spawnTile === undefined) {
+              return false;
+            }
 
-          return (
-            this.mg.manhattanDist(spawnTile, center) <
-            this.mg.config().minDistanceBetweenPlayers()
-          );
-        });
+            return (
+              this.mg.manhattanDist(spawnTile, center) <
+              this.mg.config().minDistanceBetweenPlayers()
+            );
+          });
 
-      if (isOtherPlayerSpawnedNearby) {
-        continue;
+        if (isOtherPlayerSpawnedNearby) {
+          continue;
+        }
       }
 
       const tiles = getSpawnTiles(this.mg, center, true);

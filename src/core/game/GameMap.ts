@@ -23,6 +23,8 @@ export interface GameMap {
   terrainByte(ref: TileRef): number;
   // Terrain setters
   setWater(ref: TileRef): void;
+  /** Bumped every time a land tile turns to water; lets callers cache anything derived from water components. */
+  waterVersion(): number;
   setShorelineBit(ref: TileRef): void;
   clearShorelineBit(ref: TileRef): void;
   setOcean(ref: TileRef): void;
@@ -45,6 +47,7 @@ export interface GameMap {
   // neighbors()) and returns the count. out must have length >= 4; reuse it
   // across calls to avoid allocation in hot loops.
   neighbors4(ref: TileRef, out: TileRef[]): number;
+  neighbors8(ref: TileRef, out: TileRef[]): number;
   // Zero-allocation neighbor iteration including diagonals, in dx-major
   // order: (-1,-1),(-1,0),(-1,1),(0,-1),(0,1),(1,-1),(1,0),(1,1).
   forEachNeighborWithDiag(
@@ -247,8 +250,14 @@ export class GameMapImpl implements GameMap {
     return this.terrain[ref];
   }
 
+  private waterVersion_ = 0;
+  waterVersion(): number {
+    return this.waterVersion_;
+  }
+
   setWater(ref: TileRef): void {
     if (!this.isLand(ref) || this.isImpassable(ref)) return;
+    this.waterVersion_++;
     this.terrain[ref] = 0; // Lake water: no land, no ocean, no shoreline, magnitude 0
     this.numLandTiles_--;
   }
@@ -309,11 +318,20 @@ export class GameMapImpl implements GameMap {
     }
   }
 
+  // True when the tile touches the map boundary or an impassable tile.
+  // Impassable terrain acts like the map edge for enclosure checks: a
+  // cluster hugging it cannot be "surrounded" from that side.
   isOnEdgeOfMap(ref: TileRef): boolean {
-    const x = this.x(ref);
-    const y = this.y(ref);
+    const w = this.width_;
+    const x = ref % w;
+    if (x === 0 || x === w - 1 || ref < w || ref >= (this.height_ - 1) * w) {
+      return true;
+    }
     return (
-      x === 0 || x === this.width() - 1 || y === 0 || y === this.height() - 1
+      this.isImpassable(ref - 1) ||
+      this.isImpassable(ref + 1) ||
+      this.isImpassable(ref - w) ||
+      this.isImpassable(ref + w)
     );
   }
 
@@ -401,6 +419,28 @@ export class GameMapImpl implements GameMap {
     if (ref < (this.height_ - 1) * w) out[n++] = ref + w;
     if (x !== 0) out[n++] = ref - 1;
     if (x !== w - 1) out[n++] = ref + 1;
+    return n;
+  }
+
+  neighbors8(ref: TileRef, out: TileRef[]): number {
+    const w = this.width_;
+    const x = ref % w;
+    const hasN = ref >= w;
+    const hasS = ref < (this.height_ - 1) * w;
+    let n = 0;
+
+    if (x !== 0) {
+      if (hasN) out[n++] = ref - 1 - w;
+      out[n++] = ref - 1;
+      if (hasS) out[n++] = ref - 1 + w;
+    }
+    if (hasN) out[n++] = ref - w;
+    if (hasS) out[n++] = ref + w;
+    if (x !== w - 1) {
+      if (hasN) out[n++] = ref + 1 - w;
+      out[n++] = ref + 1;
+      if (hasS) out[n++] = ref + 1 + w;
+    }
     return n;
   }
 
@@ -532,6 +572,9 @@ export class GameMapImpl implements GameMap {
       const wasLand = this.isLand(tile);
       this.terrain[tile] = terrainByte;
       const isNowLand = Boolean(terrainByte & (1 << GameMapImpl.IS_LAND_BIT));
+      // Water-derived caches key on waterVersion(): a packed update that flips
+      // land/water must invalidate them just like setWater() does.
+      if (wasLand !== isNowLand) this.waterVersion_++;
       if (wasLand && !isNowLand) this.numLandTiles_--;
       else if (!wasLand && isNowLand) this.numLandTiles_++;
     }

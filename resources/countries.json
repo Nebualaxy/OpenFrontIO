@@ -9,6 +9,11 @@
     "name": "Abbasid Caliphate"
   },
   {
+    "code": "Acadiana",
+    "continent": "North America",
+    "name": "Acadiana"
+  },
+  {
     "code": "Achaemenid Empire",
     "continent": "Asia",
     "name": "Achaemenid Empire"
@@ -238,6 +243,11 @@
     "name": "Ascension Island"
   },
   {
+    "code": "Association of Caribbean States",
+    "continent": "North America",
+    "name": "Association of Caribbean States"
+  },
+  {
     "code": "Assyria",
     "continent": "Asia",
     "name": "Assyria"
@@ -256,6 +266,21 @@
     "code": "Athens",
     "continent": "Europe",
     "name": "Athens"
+  },
+  {
+    "code": "Atlanta",
+    "continent": "North America",
+    "name": "Atlanta"
+  },
+  {
+    "code": "nz-auckland",
+    "continent": "Oceania",
+    "name": "Auckland"
+  },
+  {
+    "code": "Austin",
+    "continent": "North America",
+    "name": "Austin"
   },
   {
     "code": "at",
@@ -382,6 +407,11 @@
     "name": "Basque Country"
   },
   {
+    "code": "Baton Rouge",
+    "continent": "North America",
+    "name": "Baton Rouge"
+  },
+  {
     "code": "DE-BY",
     "continent": "Europe",
     "name": "Bavaria"
@@ -390,6 +420,11 @@
     "code": "DE-BY-L",
     "continent": "Europe",
     "name": "Bavaria (Lozenges)"
+  },
+  {
+    "code": "Bedford",
+    "continent": "North America",
+    "name": "Bedford"
   },
   {
     "code": "by",
@@ -439,7 +474,7 @@
   {
     "code": "bq",
     "continent": "South America",
-    "name": "Bonaire, Sint Eustatius and Saba"
+    "name": "Bonaire"
   },
   {
     "code": "ba",
@@ -600,6 +635,11 @@
     "name": "Capybara"
   },
   {
+    "code": "CARICOM",
+    "continent": "North America",
+    "name": "CARICOM"
+  },
+  {
     "code": "Carthage",
     "continent": "Africa",
     "name": "Carthage"
@@ -675,6 +715,11 @@
     "name": "Champagne-Ardenne"
   },
   {
+    "code": "nz-chatham",
+    "continent": "Oceania",
+    "name": "Chatham Islands"
+  },
+  {
     "code": "Cherokee Nation",
     "continent": "North America",
     "name": "Cherokee"
@@ -708,6 +753,11 @@
     "code": "Chinook",
     "continent": "North America",
     "name": "Chinook"
+  },
+  {
+    "code": "nz-christchurch",
+    "continent": "Oceania",
+    "name": "Christchurch"
   },
   {
     "code": "cx",
@@ -759,6 +809,10 @@
     "name": "Comoros"
   },
   {
+    "code": "Commonwealth",
+    "name": "Commonwealth"
+  },
+  {
     "code": "Communist flag",
     "name": "Communist Flag"
   },
@@ -802,6 +856,11 @@
     "code": "cordoba",
     "continent": "Europe",
     "name": "Cordoba"
+  },
+  {
+    "code": "Corpus Christi",
+    "continent": "North America",
+    "name": "Corpus Christi"
   },
   {
     "code": "Corrientes",
@@ -893,6 +952,11 @@
     "name": "Dál Riata"
   },
   {
+    "code": "Dallas",
+    "continent": "North America",
+    "name": "Dallas"
+  },
+  {
     "code": "Delaware",
     "continent": "North America",
     "name": "Delaware"
@@ -963,6 +1027,11 @@
     "name": "Dumnonia"
   },
   {
+    "code": "nz-dunedin",
+    "continent": "Oceania",
+    "name": "Dunedin"
+  },
+  {
     "code": "Dutch East India Company",
     "name": "Dutch East India Company"
   },
@@ -1000,6 +1069,11 @@
     "code": "Elam",
     "continent": "Asia",
     "name": "Elam"
+  },
+  {
+    "code": "El Paso",
+    "continent": "North America",
+    "name": "El Paso"
   },
   {
     "code": "sv",
@@ -1124,6 +1198,11 @@
     "name": "Fatimid Caliphate"
   },
   {
+    "code": "Federal Republic of Central America",
+    "continent": "North America",
+    "name": "Federal Republic of Central America"
+  },
+  {
     "code": "fm",
     "continent": "Oceania",
     "name": "Federated States of Micronesia"
@@ -1232,6 +1311,11 @@
     "name": "Garamantes"
   },
   {
+    "code": "Garifuna",
+    "continent": "North America",
+    "name": "Garifuna"
+  },
+  {
     "code": "ge",
     "continent": "Asia",
     "name": "Georgia"
@@ -1333,6 +1417,11 @@
     "name": "Guatemala"
   },
   {
+    "code": "Guatemala Indigenous",
+    "continent": "North America",
+    "name": "Guatemala Indigenous"
+  },
+  {
     "code": "gg",
     "continent": "Europe",
     "name": "Guernsey"
@@ -1346,6 +1435,11 @@
     "code": "gw",
     "continent": "Africa",
     "name": "Guinea-Bissau"
+  },
+  {
+    "code": "pa-ky",
+    "continent": "North America",
+    "name": "Guna Yala"
   },
   {
     "code": "1_Gwent",
@@ -1383,6 +1477,11 @@
     "name": "Haida"
   },
   {
+    "code": "nu-hak",
+    "continent": "Oceania",
+    "name": "Hakupu"
+  },
+  {
     "code": "fr-hdf",
     "continent": "Europe",
     "name": "Hauts-de-France"
@@ -1415,6 +1514,11 @@
     "code": "hk",
     "continent": "Asia",
     "name": "Hong Kong"
+  },
+  {
+    "code": "Houston",
+    "continent": "North America",
+    "name": "Houston"
   },
   {
     "code": "hu",
@@ -1515,6 +1619,11 @@
     "code": "it",
     "continent": "Europe",
     "name": "Italy"
+  },
+  {
+    "code": "Jacksonville",
+    "continent": "North America",
+    "name": "Jacksonville"
   },
   {
     "code": "jm",
@@ -1635,6 +1744,11 @@
     "code": "Kentucky",
     "continent": "North America",
     "name": "Kentucky"
+  },
+  {
+    "code": "Key West",
+    "continent": "North America",
+    "name": "Key West"
   },
   {
     "code": "Khemet",
@@ -1761,6 +1875,11 @@
     "name": "Kokang"
   },
   {
+    "code": "nz-koru",
+    "continent": "Oceania",
+    "name": "Koru"
+  },
+  {
     "code": "xk",
     "continent": "Europe",
     "name": "Kosovo"
@@ -1841,6 +1960,11 @@
     "name": "Laos"
   },
   {
+    "code": "Laredo",
+    "continent": "North America",
+    "name": "Laredo"
+  },
+  {
     "code": "lv",
     "continent": "Europe",
     "name": "Latvia"
@@ -1863,6 +1987,11 @@
     "code": "Leinster",
     "continent": "Europe",
     "name": "Leinster"
+  },
+  {
+    "code": "Lenca",
+    "continent": "North America",
+    "name": "Lenca"
   },
   {
     "code": "leon",
@@ -1926,6 +2055,11 @@
     "code": "Lithuanian SSR",
     "continent": "Europe",
     "name": "Lithuanian SSR"
+  },
+  {
+    "code": "Los Altos",
+    "continent": "North America",
+    "name": "Los Altos"
   },
   {
     "code": "Los Lagos",
@@ -2073,6 +2207,10 @@
     "name": "Marinid Dynasty"
   },
   {
+    "code": "FlagOfMars",
+    "name": "Mars"
+  },
+  {
     "code": "mh",
     "continent": "Oceania",
     "name": "Marshall Islands"
@@ -2096,6 +2234,16 @@
     "code": "mu",
     "continent": "Africa",
     "name": "Mauritius"
+  },
+  {
+    "code": "Maya Peninsular",
+    "continent": "North America",
+    "name": "Maya Peninsular"
+  },
+  {
+    "code": "Maya",
+    "continent": "North America",
+    "name": "Maya"
   },
   {
     "code": "yt",
@@ -2143,6 +2291,11 @@
     "name": "Mexico"
   },
   {
+    "code": "Miami",
+    "continent": "North America",
+    "name": "Miami"
+  },
+  {
     "code": "Miccosukee",
     "continent": "North America",
     "name": "Miccosukee"
@@ -2181,6 +2334,11 @@
     "code": "Missouri",
     "continent": "North America",
     "name": "Missouri"
+  },
+  {
+    "code": "Mobile",
+    "continent": "North America",
+    "name": "Mobile"
   },
   {
     "code": "Moldavian SSR",
@@ -2278,9 +2436,24 @@
     "name": "Namibia"
   },
   {
+    "code": "Nantucket",
+    "continent": "North America",
+    "name": "Nantucket"
+  },
+  {
+    "code": "nz-napier",
+    "continent": "Oceania",
+    "name": "Napier"
+  },
+  {
     "code": "Napoleon",
     "continent": "Europe",
     "name": "Napoleon"
+  },
+  {
+    "code": "pa-nt",
+    "continent": "North America",
+    "name": "Naso Tjër Di"
   },
   {
     "code": "NATO",
@@ -2315,6 +2488,11 @@
     "code": "Negeri Sembilan",
     "continent": "Asia",
     "name": "Negeri Sembilan"
+  },
+  {
+    "code": "nz-nelson",
+    "continent": "Oceania",
+    "name": "Nelson"
   },
   {
     "code": "np",
@@ -2381,6 +2559,11 @@
     "name": "New Mexico"
   },
   {
+    "code": "New Orleans",
+    "continent": "North America",
+    "name": "New Orleans"
+  },
+  {
     "code": "aus_nsw",
     "continent": "Oceania",
     "name": "New South Wales"
@@ -2394,6 +2577,11 @@
     "code": "nz",
     "continent": "Oceania",
     "name": "New Zealand"
+  },
+  {
+    "code": "pa-nb",
+    "continent": "North America",
+    "name": "Ngäbe-Buglé"
   },
   {
     "code": "ni",
@@ -2561,6 +2749,21 @@
     "name": "Oregon"
   },
   {
+    "code": "Organization of American States",
+    "continent": "North America",
+    "name": "Organization of American States"
+  },
+  {
+    "code": "Orlando",
+    "continent": "North America",
+    "name": "Orlando"
+  },
+  {
+    "code": "nz-otago",
+    "continent": "Oceania",
+    "name": "Otago"
+  },
+  {
     "code": "Ottoman Empire",
     "continent": "Asia",
     "name": "Ottoman Empire"
@@ -2589,6 +2792,11 @@
     "code": "Palekh",
     "continent": "Europe",
     "name": "Palekh"
+  },
+  {
+    "code": "Panama Canal Zone",
+    "continent": "North America",
+    "name": "Panama Canal Zone"
   },
   {
     "code": "pa",
@@ -2681,6 +2889,11 @@
     "name": "Picardy"
   },
   {
+    "code": "Pipil",
+    "continent": "North America",
+    "name": "Pipil"
+  },
+  {
     "code": "Pine Tree Flag",
     "continent": "North America",
     "name": "Pine Tree Flag"
@@ -2708,6 +2921,11 @@
     "code": "Polish–Lithuanian Commonwealth",
     "continent": "Europe",
     "name": "Polish–Lithuanian Commonwealth"
+  },
+  {
+    "code": "nz-porirua",
+    "continent": "Oceania",
+    "name": "Porirua"
   },
   {
     "code": "pt",
@@ -2794,6 +3012,11 @@
     "name": "Rashidi Emirate"
   },
   {
+    "code": "nz-red peak",
+    "continent": "Oceania",
+    "name": "Red Peak"
+  },
+  {
     "code": "Republic of China",
     "continent": "Asia",
     "name": "Republic of China"
@@ -2859,6 +3082,11 @@
     "name": "Rio de Janeiro"
   },
   {
+    "code": "Rio Grande",
+    "continent": "North America",
+    "name": "Rio Grande Republic"
+  },
+  {
     "code": "Rio Negro",
     "continent": "South America",
     "name": "Rio Negro"
@@ -2886,6 +3114,11 @@
   {
     "code": "Ror Empire",
     "name": "Ror Empire"
+  },
+  {
+    "code": "nz-ross dependency",
+    "continent": "Oceania",
+    "name": "Ross Dependency"
   },
   {
     "code": "ru",
@@ -3318,6 +3551,11 @@
     "name": "Saarland"
   },
   {
+    "code": "bq-sa",
+    "continent": "North America",
+    "name": "Saba"
+  },
+  {
     "code": "Saba kingdom",
     "continent": "Asia",
     "name": "Saba Kingdom"
@@ -3376,6 +3614,11 @@
     "code": "ws",
     "continent": "Oceania",
     "name": "Samoa"
+  },
+  {
+    "code": "San Antonio",
+    "continent": "North America",
+    "name": "San Antonio"
   },
   {
     "code": "San Juan",
@@ -3466,6 +3709,11 @@
     "name": "Scotland"
   },
   {
+    "code": "New Caledonia",
+    "continent": "North America",
+    "name": "Scottish Darien"
+  },
+  {
     "code": "Second Republic of Iraq",
     "continent": "Asia",
     "name": "Second Republic of Iraq"
@@ -3541,9 +3789,29 @@
     "name": "Sikkim"
   },
   {
+    "code": "nz-silver fern (black)",
+    "continent": "Oceania",
+    "name": "Silver Fern (black)"
+  },
+  {
+    "code": "nz-silver fern (red)",
+    "continent": "Oceania",
+    "name": "Silver Fern (red)"
+  },
+  {
+    "code": "nz-silver fern (white)",
+    "continent": "Oceania",
+    "name": "Silver Fern (white)"
+  },
+  {
     "code": "sg",
     "continent": "Asia",
     "name": "Singapore"
+  },
+  {
+    "code": "bq-se",
+    "continent": "North America",
+    "name": "Sint Eustatius"
   },
   {
     "code": "sx",
@@ -3645,6 +3913,11 @@
     "name": "Sri Lanka"
   },
   {
+    "code": "St Petersburg (US)",
+    "continent": "North America",
+    "name": "St Petersburg (US)"
+  },
+  {
     "code": "ps",
     "continent": "Asia",
     "name": "State of Palestine"
@@ -3735,6 +4008,11 @@
     "name": "Tajikistan"
   },
   {
+    "code": "Tampa",
+    "continent": "North America",
+    "name": "Tampa"
+  },
+  {
     "code": "Tanintharyi",
     "continent": "Asia",
     "name": "Tanintharyi"
@@ -3753,6 +4031,11 @@
     "code": "aus_tas",
     "continent": "Oceania",
     "name": "Tasmania"
+  },
+  {
+    "code": "Taunton",
+    "continent": "North America",
+    "name": "Taunton"
   },
   {
     "code": "Tennessee",
@@ -3949,6 +4232,16 @@
     "name": "United States of America"
   },
   {
+    "code": "United Tribes of New Zealand",
+    "continent": "Oceania",
+    "name": "United Tribes of New Zealand"
+  },
+  {
+    "code": "nz-upper hutt",
+    "continent": "Oceania",
+    "name": "Upper Hutt"
+  },
+  {
     "code": "Upper Silesia",
     "continent": "Europe",
     "name": "Upper Silesia"
@@ -4084,6 +4377,11 @@
     "name": "Washington"
   },
   {
+    "code": "nz-wellington",
+    "continent": "Oceania",
+    "name": "Wellington"
+  },
+  {
     "code": "1_Wessex",
     "continent": "Europe",
     "name": "Wessex"
@@ -4097,6 +4395,11 @@
     "code": "west_germany",
     "continent": "Europe",
     "name": "West Germany"
+  },
+  {
+    "code": "West Indies Federation",
+    "continent": "North America",
+    "name": "West Indies Federation"
   },
   {
     "code": "West Papua",
